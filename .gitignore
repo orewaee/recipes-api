@@ -1,0 +1,6 @@
+/.idea
+
+/config
+
+# during development
+/cmd
