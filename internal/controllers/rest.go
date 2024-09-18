@@ -20,6 +20,7 @@ func (controller *RestController) Run() {
 	router := fastrouter.New()
 
 	router.GET("/recipe/{id}", controller.getRecipeById)
+	router.GET("/recipe/random", controller.getRandomRecipe)
 
 	if err := fasthttp.ListenAndServe(controller.addr, router.Handler); err != nil {
 		log.Fatalln(err)

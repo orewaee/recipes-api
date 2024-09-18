@@ -58,3 +58,20 @@ func (repo *RecipeRepo) GetRecipeById(ctx context.Context, id string) (*domain.R
 
 	return recipe, nil
 }
+
+func (repo *RecipeRepo) GetRandomRecipe(ctx context.Context) (*domain.Recipe, error) {
+	row := repo.pool.QueryRow(ctx, "select * from recipes order by random() limit 1")
+
+	recipe := new(domain.Recipe)
+	err := row.Scan(&recipe.Id, &recipe.Name, &recipe.Description)
+
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+		return nil, constants.ErrNoRecipes
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return recipe, nil
+}

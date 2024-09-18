@@ -35,3 +35,7 @@ func (service *RecipeService) AddRecipe(ctx context.Context, name, description s
 func (service *RecipeService) GetRecipeById(ctx context.Context, id string) (*domain.Recipe, error) {
 	return service.repo.GetRecipeById(ctx, id)
 }
+
+func (service *RecipeService) GetRandomRecipe(ctx context.Context) (*domain.Recipe, error) {
+	return service.repo.GetRandomRecipe(ctx)
+}
