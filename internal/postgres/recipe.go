@@ -75,3 +75,14 @@ func (repo *RecipeRepo) GetRandomRecipe(ctx context.Context) (*domain.Recipe, er
 
 	return recipe, nil
 }
+
+func (repo *RecipeRepo) GetNumberOfRecipes(ctx context.Context) (int, error) {
+	row := repo.pool.QueryRow(ctx, "select count(*) from recipes")
+
+	number := 0
+	if err := row.Scan(&number); err != nil {
+		return 0, err
+	}
+
+	return number, nil
+}

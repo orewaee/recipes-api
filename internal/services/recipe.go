@@ -39,3 +39,7 @@ func (service *RecipeService) GetRecipeById(ctx context.Context, id string) (*do
 func (service *RecipeService) GetRandomRecipe(ctx context.Context) (*domain.Recipe, error) {
 	return service.repo.GetRandomRecipe(ctx)
 }
+
+func (service *RecipeService) GetNumberOfRecipes(ctx context.Context) (int, error) {
+	return service.repo.GetNumberOfRecipes(ctx)
+}
