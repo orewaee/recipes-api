@@ -86,3 +86,26 @@ func (repo *RecipeRepo) GetNumberOfRecipes(ctx context.Context) (int, error) {
 
 	return number, nil
 }
+
+func (repo *RecipeRepo) GetRecipes(ctx context.Context, limit, offset int) ([]*domain.Recipe, error) {
+	rows, err := repo.pool.Query(ctx, "select * from recipes limit $1 offset $2", limit, offset)
+
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+		return nil, constants.ErrNoRecipes
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	recipes, err := pgx.CollectRows[*domain.Recipe](rows, func(row pgx.CollectableRow) (*domain.Recipe, error) {
+		recipe := new(domain.Recipe)
+		if err := row.Scan(&recipe.Id, &recipe.Name, &recipe.Description); err != nil {
+			return nil, err
+		}
+
+		return recipe, nil
+	})
+
+	return recipes, nil
+}
