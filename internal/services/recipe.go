@@ -43,3 +43,14 @@ func (service *RecipeService) GetRandomRecipe(ctx context.Context) (*domain.Reci
 func (service *RecipeService) GetNumberOfRecipes(ctx context.Context) (int, error) {
 	return service.repo.GetNumberOfRecipes(ctx)
 }
+
+func (service *RecipeService) GetRecipes(ctx context.Context, limit, page int) ([]*domain.Recipe, error) {
+	offset := limit * (page - 1)
+
+	recipes, err := service.repo.GetRecipes(ctx, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	return recipes, nil
+}
