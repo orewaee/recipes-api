@@ -54,3 +54,9 @@ func (service *RecipeService) GetRecipes(ctx context.Context, limit, page int) (
 
 	return recipes, nil
 }
+
+func (service *RecipeService) GetNameSuggestions(ctx context.Context, substring string, position domain.Position, limit int) ([]string, error) {
+	// cache call
+
+	return service.repo.GetNameSuggestions(ctx, substring, position, limit)
+}

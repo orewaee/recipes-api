@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"github.com/orewaee/recipes-api/internal/app/domain"
 	"github.com/orewaee/recipes-api/internal/constants"
 	"github.com/orewaee/recipes-api/internal/dtos"
 	"github.com/orewaee/recipes-api/internal/utils"
@@ -94,4 +95,42 @@ func (controller *RestController) getRecipes(ctx *fasthttp.RequestCtx) {
 	}
 
 	utils.MustWriteJson(ctx, dtoRecipes, fasthttp.StatusOK)
+}
+
+func (controller *RestController) getNameSuggestions(ctx *fasthttp.RequestCtx) {
+	query := string(ctx.QueryArgs().Peek("query"))
+
+	limit, err := strconv.Atoi(string(ctx.QueryArgs().Peek("limit")))
+	if err != nil {
+		utils.MustWriteString(ctx, "invalid limit", fasthttp.StatusBadRequest)
+		return
+	}
+
+	suggestions, err := controller.api.GetNameSuggestions(ctx, query, domain.PositionStart, limit)
+
+	if err != nil && !errors.Is(err, constants.ErrNoSuggestions) {
+		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
+		return
+	}
+
+	if err == nil {
+		ctx.Response.Header.Set("Cache-Control", "max-age=600")
+		utils.MustWriteJson(ctx, suggestions, fasthttp.StatusOK)
+		return
+	}
+
+	suggestions, err = controller.api.GetNameSuggestions(ctx, query, domain.PositionMiddle, limit)
+
+	if err != nil && errors.Is(err, constants.ErrNoSuggestions) {
+		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
+		return
+	}
+
+	ctx.Response.Header.Set("Cache-Control", "max-age=600")
+	utils.MustWriteJson(ctx, suggestions, fasthttp.StatusOK)
 }
