@@ -17,7 +17,7 @@ func (controller *RestController) getRecipeById(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	recipe, err := controller.api.GetRecipeById(ctx, id)
+	recipe, err := controller.recipeApi.GetRecipeById(ctx, id)
 	if err != nil {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusOK)
 		return
@@ -33,7 +33,7 @@ func (controller *RestController) getRecipeById(ctx *fasthttp.RequestCtx) {
 }
 
 func (controller *RestController) getRandomRecipe(ctx *fasthttp.RequestCtx) {
-	recipe, err := controller.api.GetRandomRecipe(ctx)
+	recipe, err := controller.recipeApi.GetRandomRecipe(ctx)
 
 	if err != nil && errors.Is(err, domain.ErrNoRecipes) {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusNotFound)
@@ -55,7 +55,7 @@ func (controller *RestController) getRandomRecipe(ctx *fasthttp.RequestCtx) {
 }
 
 func (controller *RestController) getNumberOfRecipes(ctx *fasthttp.RequestCtx) {
-	number, err := controller.api.GetNumberOfRecipes(ctx)
+	number, err := controller.recipeApi.GetNumberOfRecipes(ctx)
 
 	if err != nil {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
@@ -78,7 +78,7 @@ func (controller *RestController) getRecipes(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	recipes, err := controller.api.GetRecipes(ctx, limit, page)
+	recipes, err := controller.recipeApi.GetRecipes(ctx, limit, page)
 	if err != nil {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
 		return
@@ -105,7 +105,7 @@ func (controller *RestController) getNameSuggestions(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	suggestions, err := controller.api.GetNameSuggestions(ctx, query, domain.PositionStart, limit)
+	suggestions, err := controller.recipeApi.GetNameSuggestions(ctx, query, domain.PositionStart, limit)
 
 	if err != nil && !errors.Is(err, domain.ErrNoSuggestions) {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
@@ -118,7 +118,7 @@ func (controller *RestController) getNameSuggestions(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	suggestions, err = controller.api.GetNameSuggestions(ctx, query, domain.PositionMiddle, limit)
+	suggestions, err = controller.recipeApi.GetNameSuggestions(ctx, query, domain.PositionMiddle, limit)
 
 	if err != nil && errors.Is(err, domain.ErrNoSuggestions) {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusNotFound)

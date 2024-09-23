@@ -19,6 +19,14 @@ func MustWriteString(ctx *fasthttp.RequestCtx, data string, code int) {
 	}
 }
 
+func MustWriteMarkdown(ctx *fasthttp.RequestCtx, data string, code int) {
+	ctx.Response.Header.Set("Content-Type", "text/markdown; charset=UTF-8")
+	ctx.SetStatusCode(code)
+	if _, err := ctx.WriteString(data); err != nil {
+		panic(err)
+	}
+}
+
 func MustWriteAny(ctx *fasthttp.RequestCtx, data any, code int) {
 	ctx.SetStatusCode(code)
 
