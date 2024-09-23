@@ -38,12 +38,29 @@ services:
       - "6380:6379"
     networks:
       - redis
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    container_name: minio
+    env_file:
+      - ../config/.env
+    volumes:
+      - minio:/data/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server --console-address ":9001" /data/minio
+    networks:
+      - minio
 networks:
   postgres:
     driver: bridge
   redis:
     driver: bridge
+  minio:
+    driver: bridge
 volumes:
   postgres:
   pgadmin:
   redis:
+  minio:
