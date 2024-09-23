@@ -3,7 +3,6 @@ package controllers
 import (
 	"errors"
 	"github.com/orewaee/recipes-api/internal/app/domain"
-	"github.com/orewaee/recipes-api/internal/constants"
 	"github.com/orewaee/recipes-api/internal/dtos"
 	"github.com/orewaee/recipes-api/internal/utils"
 	"github.com/valyala/fasthttp"
@@ -36,7 +35,7 @@ func (controller *RestController) getRecipeById(ctx *fasthttp.RequestCtx) {
 func (controller *RestController) getRandomRecipe(ctx *fasthttp.RequestCtx) {
 	recipe, err := controller.api.GetRandomRecipe(ctx)
 
-	if err != nil && errors.Is(err, constants.ErrNoRecipes) {
+	if err != nil && errors.Is(err, domain.ErrNoRecipes) {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusNotFound)
 		return
 	}
@@ -108,7 +107,7 @@ func (controller *RestController) getNameSuggestions(ctx *fasthttp.RequestCtx) {
 
 	suggestions, err := controller.api.GetNameSuggestions(ctx, query, domain.PositionStart, limit)
 
-	if err != nil && !errors.Is(err, constants.ErrNoSuggestions) {
+	if err != nil && !errors.Is(err, domain.ErrNoSuggestions) {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
 		return
 	}
@@ -121,7 +120,7 @@ func (controller *RestController) getNameSuggestions(ctx *fasthttp.RequestCtx) {
 
 	suggestions, err = controller.api.GetNameSuggestions(ctx, query, domain.PositionMiddle, limit)
 
-	if err != nil && errors.Is(err, constants.ErrNoSuggestions) {
+	if err != nil && errors.Is(err, domain.ErrNoSuggestions) {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusNotFound)
 		return
 	}

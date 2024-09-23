@@ -1,2 +1,2 @@
 @echo off
-docker compose -f ./deploy/compose.yaml -p recipes-api up -d
+docker compose -f ./deploy/compose.yaml -p recipes_api up -d

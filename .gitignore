@@ -4,3 +4,6 @@
 
 # during development
 /cmd
+/tmp
+
+.air.toml

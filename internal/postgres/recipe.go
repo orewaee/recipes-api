@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/orewaee/recipes-api/internal/app/domain"
 	"github.com/orewaee/recipes-api/internal/app/repos"
-	"github.com/orewaee/recipes-api/internal/constants"
 )
 
 type RecipeRepo struct {
@@ -50,7 +49,7 @@ func (repo *RecipeRepo) GetRecipeById(ctx context.Context, id string) (*domain.R
 	err := row.Scan(&recipe.Id, &recipe.Name, &recipe.Description)
 
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
-		return nil, constants.ErrRecipeNotFound
+		return nil, domain.ErrRecipeNotFound
 	}
 
 	if err != nil {
@@ -67,7 +66,7 @@ func (repo *RecipeRepo) GetRandomRecipe(ctx context.Context) (*domain.Recipe, er
 	err := row.Scan(&recipe.Id, &recipe.Name, &recipe.Description)
 
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
-		return nil, constants.ErrNoRecipes
+		return nil, domain.ErrNoRecipes
 	}
 
 	if err != nil {
@@ -92,7 +91,7 @@ func (repo *RecipeRepo) GetRecipes(ctx context.Context, limit, offset int) ([]*d
 	rows, err := repo.pool.Query(ctx, "select * from recipes limit $1 offset $2", limit, offset)
 
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
-		return nil, constants.ErrNoRecipes
+		return nil, domain.ErrNoRecipes
 	}
 
 	if err != nil {
@@ -113,7 +112,7 @@ func (repo *RecipeRepo) GetRecipes(ctx context.Context, limit, offset int) ([]*d
 	}
 
 	if len(recipes) == 0 {
-		return nil, constants.ErrNoRecipes
+		return nil, domain.ErrNoRecipes
 	}
 
 	return recipes, nil
@@ -132,7 +131,7 @@ func (repo *RecipeRepo) GetNameSuggestions(ctx context.Context, substring string
 	rows, err := repo.pool.Query(ctx, sql, limit)
 
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
-		return nil, constants.ErrNoSuggestions
+		return nil, domain.ErrNoSuggestions
 	}
 
 	if err != nil {
@@ -153,7 +152,7 @@ func (repo *RecipeRepo) GetNameSuggestions(ctx context.Context, substring string
 	}
 
 	if len(suggestions) == 0 {
-		return nil, constants.ErrNoSuggestions
+		return nil, domain.ErrNoSuggestions
 	}
 
 	return suggestions, nil
