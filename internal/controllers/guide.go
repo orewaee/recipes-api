@@ -19,5 +19,6 @@ func (controller *RestController) getGuideById(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	ctx.Response.Header.Set("Cache-Control", "max-age=600")
 	utils.MustWriteMarkdown(ctx, guide, fasthttp.StatusOK)
 }

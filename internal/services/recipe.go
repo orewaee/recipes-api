@@ -39,8 +39,8 @@ func (service *RecipeService) AddRecipe(ctx context.Context, name, description s
 func (service *RecipeService) GetRecipeById(ctx context.Context, id string) (*domain.Recipe, error) {
 	key := "recipe_" + id
 
-	if value, err := service.cache.Get(ctx, key); err == nil {
-		return utils.MustUnmarshalRecipe(value), nil
+	if cache, err := service.cache.Get(ctx, key); err == nil {
+		return utils.MustUnmarshalRecipe(cache), nil
 	}
 
 	recipe, err := service.repo.GetRecipeById(ctx, id)
