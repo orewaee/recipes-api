@@ -8,13 +8,14 @@ import (
 )
 
 type RestController struct {
-	addr      string
-	recipeApi apis.RecipeApi
-	guideApi  apis.GuideApi
+	addr       string
+	recipeApi  apis.RecipeApi
+	guideApi   apis.GuideApi
+	previewApi apis.PreviewApi
 }
 
-func NewRestController(addr string, recipeApi apis.RecipeApi, guideApi apis.GuideApi) *RestController {
-	return &RestController{addr, recipeApi, guideApi}
+func NewRestController(addr string, recipeApi apis.RecipeApi, guideApi apis.GuideApi, previewApi apis.PreviewApi) *RestController {
+	return &RestController{addr, recipeApi, guideApi, previewApi}
 }
 
 func (controller *RestController) Run() {
@@ -27,6 +28,8 @@ func (controller *RestController) Run() {
 	router.GET("/recipes/suggestions", controller.getNameSuggestions)
 
 	router.GET("/guide/{id}", controller.getGuideById)
+
+	router.GET("/preview/{id}", controller.getPreviewById)
 
 	if err := fasthttp.ListenAndServe(controller.addr, router.Handler); err != nil {
 		log.Fatalln(err)

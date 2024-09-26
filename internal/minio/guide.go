@@ -3,7 +3,6 @@ package minio
 import (
 	"context"
 	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/orewaee/recipes-api/internal/app/repos"
 	"io"
 	"strings"
@@ -14,16 +13,7 @@ type GuideRepo struct {
 	client *minio.Client
 }
 
-func NewGuideRepo(ctx context.Context, endpoint, user, password, bucket string) (repos.GuideRepo, error) {
-	client, err := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(user, password, ""),
-		Secure: false,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
+func NewGuideRepo(ctx context.Context, client *minio.Client, bucket string) (repos.GuideRepo, error) {
 	exists, err := client.BucketExists(ctx, bucket)
 	if err != nil {
 		return nil, err
