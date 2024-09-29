@@ -30,6 +30,7 @@ func (controller *RestController) Run() {
 	router.GET("/guide/{id}", controller.getGuideById)
 
 	router.GET("/preview/{id}", controller.getPreviewById)
+	router.POST("/preview/{id}", controller.postPreview)
 
 	if err := fasthttp.ListenAndServe(controller.addr, router.Handler); err != nil {
 		log.Fatalln(err)
