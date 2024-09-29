@@ -78,6 +78,46 @@ func (controller *RestController) getRecipes(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	name := string(ctx.QueryArgs().Peek("name"))
+	if name != "" {
+		recipes, err := controller.recipeApi.GetRecipesByName(ctx, name, domain.PositionStart, limit, page)
+		if err != nil && !errors.Is(err, domain.ErrNoSuggestions) {
+			utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
+			return
+		}
+
+		if err == nil {
+			ctx.Response.Header.Set("Cache-Control", "max-age=600")
+			utils.MustWriteJson(ctx, recipes, fasthttp.StatusOK)
+			return
+		}
+
+		recipes, err = controller.recipeApi.GetRecipesByName(ctx, name, domain.PositionMiddle, limit, page)
+
+		if err != nil && errors.Is(err, domain.ErrNoSuggestions) {
+			utils.MustWriteString(ctx, err.Error(), fasthttp.StatusNotFound)
+			return
+		}
+
+		if err != nil {
+			utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
+			return
+		}
+
+		dtoRecipes := make([]*dtos.Recipe, len(recipes))
+		for i, recipe := range recipes {
+			dtoRecipes[i] = &dtos.Recipe{
+				Id:          recipe.Id,
+				Name:        recipe.Name,
+				Description: recipe.Description,
+			}
+		}
+
+		ctx.Response.Header.Set("Cache-Control", "max-age=600")
+		utils.MustWriteJson(ctx, dtoRecipes, fasthttp.StatusOK)
+		return
+	}
+
 	recipes, err := controller.recipeApi.GetRecipes(ctx, limit, page)
 	if err != nil {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)

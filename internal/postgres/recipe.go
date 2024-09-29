@@ -118,6 +118,46 @@ func (repo *RecipeRepo) GetRecipes(ctx context.Context, limit, offset int) ([]*d
 	return recipes, nil
 }
 
+func (repo *RecipeRepo) GetRecipesByName(ctx context.Context, substring string, position domain.Position, limit, offset int) ([]*domain.Recipe, error) {
+	sql := ""
+
+	switch position {
+	case domain.PositionStart:
+		sql = fmt.Sprintf("select * from recipes where name ilike '%s%%' limit $1 offset $2", substring)
+	case domain.PositionMiddle:
+		sql = fmt.Sprintf("select * from recipes where name ilike '%%%s%%' limit $1 offset $2", substring)
+	}
+
+	rows, err := repo.pool.Query(ctx, sql, limit, offset)
+
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+		return nil, domain.ErrNoRecipes
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	recipes, err := pgx.CollectRows[*domain.Recipe](rows, func(row pgx.CollectableRow) (*domain.Recipe, error) {
+		recipe := new(domain.Recipe)
+		if err := row.Scan(&recipe.Id, &recipe.Name, &recipe.Description); err != nil {
+			return nil, err
+		}
+
+		return recipe, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(recipes) == 0 {
+		return nil, domain.ErrNoRecipes
+	}
+
+	return recipes, nil
+}
+
 func (repo *RecipeRepo) GetNameSuggestions(ctx context.Context, substring string, position domain.Position, limit int) ([]string, error) {
 	sql := ""
 

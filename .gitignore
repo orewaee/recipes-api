@@ -5,5 +5,5 @@
 # during development
 /cmd
 /tmp
-
+/api
 .air.toml

@@ -86,6 +86,17 @@ func (service *RecipeService) GetRecipes(ctx context.Context, limit, page int) (
 	return recipes, nil
 }
 
+func (service *RecipeService) GetRecipesByName(ctx context.Context, substring string, position domain.Position, limit, page int) ([]*domain.Recipe, error) {
+	offset := limit * (page - 1)
+
+	recipes, err := service.recipeRepo.GetRecipesByName(ctx, substring, position, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	return recipes, nil
+}
+
 func (service *RecipeService) GetNameSuggestions(ctx context.Context, substring string, position domain.Position, limit int) ([]string, error) {
 	return service.recipeRepo.GetNameSuggestions(ctx, substring, position, limit)
 }
