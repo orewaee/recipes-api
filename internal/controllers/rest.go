@@ -29,6 +29,7 @@ func (controller *RestController) Run() {
 	router.GET("/recipes/suggestions", controller.getNameSuggestions)
 
 	router.GET("/guide/{id}", controller.getGuideById)
+	router.POST("/guide/{id}", controller.postGuide)
 
 	router.GET("/preview/{id}", controller.getPreviewById)
 	router.POST("/preview/{id}", controller.postPreview)

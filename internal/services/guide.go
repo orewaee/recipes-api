@@ -8,8 +8,8 @@ import (
 )
 
 type GuideService struct {
-	repo  repos.GuideRepo
-	cache repos.CacheRepo
+	guideRepo repos.GuideRepo
+	cacheRepo repos.CacheRepo
 }
 
 func NewGuideService(repo repos.GuideRepo, cache repos.CacheRepo) apis.GuideApi {
@@ -17,20 +17,20 @@ func NewGuideService(repo repos.GuideRepo, cache repos.CacheRepo) apis.GuideApi 
 }
 
 func (service *GuideService) AddGuide(ctx context.Context, id, markdown string) error {
-	return service.repo.AddGuide(ctx, id, markdown)
+	return service.guideRepo.AddGuide(ctx, id, markdown)
 }
 
 func (service *GuideService) GetGuideById(ctx context.Context, id string) (string, error) {
 	key := "guide_" + id
-	if cache, err := service.cache.Get(ctx, key); err == nil {
+	if cache, err := service.cacheRepo.Get(ctx, key); err == nil {
 		return cache, err
 	}
 
-	guide, err := service.repo.GetGuideById(ctx, id)
+	guide, err := service.guideRepo.GetGuideById(ctx, id)
 	if err != nil {
 		return "", err
 	}
 
-	service.cache.Put(ctx, key, guide, time.Minute*10)
+	service.cacheRepo.Put(ctx, key, guide, time.Minute*5)
 	return guide, nil
 }

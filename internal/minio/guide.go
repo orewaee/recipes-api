@@ -3,6 +3,7 @@ package minio
 import (
 	"context"
 	"github.com/minio/minio-go/v7"
+	"github.com/orewaee/recipes-api/internal/app/domain"
 	"github.com/orewaee/recipes-api/internal/app/repos"
 	"io"
 	"strings"
@@ -44,10 +45,14 @@ func (repo *GuideRepo) GetGuideById(ctx context.Context, id string) (string, err
 		return "", err
 	}
 
-	bytes, err := io.ReadAll(object)
+	guide, err := io.ReadAll(object)
+	if err != nil && err.Error() == "The specified key does not exist." {
+		return "", domain.ErrNoGuide
+	}
+
 	if err != nil {
 		return "", err
 	}
 
-	return string(bytes), nil
+	return string(guide), nil
 }
