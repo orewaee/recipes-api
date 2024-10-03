@@ -23,6 +23,7 @@ func (controller *RestController) Run() {
 
 	router.GET("/recipe/{id}", controller.getRecipeById)
 	router.GET("/recipe/random", controller.getRandomRecipe)
+	router.POST("/recipe", controller.postRecipe)
 
 	router.GET("/recipes/number", controller.getNumberOfRecipes)
 	router.GET("/recipes", controller.getRecipes)

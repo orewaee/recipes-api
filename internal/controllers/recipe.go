@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/orewaee/recipes-api/internal/app/domain"
 	"github.com/orewaee/recipes-api/internal/dtos"
@@ -8,6 +9,33 @@ import (
 	"github.com/valyala/fasthttp"
 	"strconv"
 )
+
+func (controller *RestController) postRecipe(ctx *fasthttp.RequestCtx) {
+	dtoRequest := new(dtos.RecipeRequest)
+	if err := json.Unmarshal(ctx.PostBody(), dtoRequest); err != nil {
+		utils.MustWriteString(ctx, "failed to parse the request body", fasthttp.StatusInternalServerError)
+		return
+	}
+
+	if err := dtoRequest.Validate(); err != nil {
+		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusBadRequest)
+		return
+	}
+
+	recipe, err := controller.recipeApi.AddRecipe(ctx, dtoRequest.Name, dtoRequest.Description)
+	if err != nil {
+		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
+		return
+	}
+
+	dtoRecipe := dtos.Recipe{
+		Id:          recipe.Id,
+		Name:        recipe.Name,
+		Description: recipe.Description,
+	}
+
+	utils.MustWriteJson(ctx, dtoRecipe, fasthttp.StatusCreated)
+}
 
 func (controller *RestController) getRecipeById(ctx *fasthttp.RequestCtx) {
 	id := ctx.UserValue("id").(string)
