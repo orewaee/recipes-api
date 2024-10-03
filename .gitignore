@@ -2,6 +2,8 @@
 
 /config
 
+/logs
+
 # during development
 /cmd
 /tmp

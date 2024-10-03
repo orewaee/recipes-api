@@ -4,20 +4,29 @@ import (
 	"context"
 	"github.com/orewaee/recipes-api/internal/app/apis"
 	"github.com/orewaee/recipes-api/internal/app/repos"
+	"github.com/rs/zerolog"
 	"time"
 )
 
 type GuideService struct {
 	guideRepo repos.GuideRepo
 	cacheRepo repos.CacheRepo
+	logger    *zerolog.Logger
 }
 
-func NewGuideService(repo repos.GuideRepo, cache repos.CacheRepo) apis.GuideApi {
-	return &GuideService{repo, cache}
+func NewGuideService(repo repos.GuideRepo, cache repos.CacheRepo, logger *zerolog.Logger) apis.GuideApi {
+	return &GuideService{repo, cache, logger}
 }
 
 func (service *GuideService) AddGuide(ctx context.Context, id, markdown string) error {
-	return service.guideRepo.AddGuide(ctx, id, markdown)
+	service.logger.Log().Str("id", id).Msg("new guide")
+
+	if err := service.guideRepo.AddGuide(ctx, id, markdown); err != nil {
+		service.logger.Error().Err(err).Send()
+		return err
+	}
+
+	return nil
 }
 
 func (service *GuideService) GetGuideById(ctx context.Context, id string) (string, error) {
@@ -28,6 +37,7 @@ func (service *GuideService) GetGuideById(ctx context.Context, id string) (strin
 
 	guide, err := service.guideRepo.GetGuideById(ctx, id)
 	if err != nil {
+		service.logger.Error().Err(err).Send()
 		return "", err
 	}
 

@@ -7,6 +7,7 @@ import (
 	"github.com/orewaee/recipes-api/internal/app/domain"
 	"github.com/orewaee/recipes-api/internal/app/repos"
 	"github.com/orewaee/recipes-api/internal/utils"
+	"github.com/rs/zerolog"
 	"strconv"
 	"time"
 )
@@ -14,10 +15,11 @@ import (
 type RecipeService struct {
 	recipeRepo repos.RecipeRepo
 	cacheRepo  repos.CacheRepo
+	logger     *zerolog.Logger
 }
 
-func NewRecipeService(recipeRepo repos.RecipeRepo, cacheRepo repos.CacheRepo) apis.RecipeApi {
-	return &RecipeService{recipeRepo, cacheRepo}
+func NewRecipeService(recipeRepo repos.RecipeRepo, cacheRepo repos.CacheRepo, logger *zerolog.Logger) apis.RecipeApi {
+	return &RecipeService{recipeRepo, cacheRepo, logger}
 }
 
 func (service *RecipeService) AddRecipe(ctx context.Context, name, description string) (*domain.Recipe, error) {
@@ -29,7 +31,13 @@ func (service *RecipeService) AddRecipe(ctx context.Context, name, description s
 		Description: description,
 	}
 
+	service.logger.Log().
+		Str("id", id).
+		Str("name", name).
+		Msg("new recipe")
+
 	if err := service.recipeRepo.AddRecipe(ctx, recipe); err != nil {
+		service.logger.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -62,11 +70,13 @@ func (service *RecipeService) GetNumberOfRecipes(ctx context.Context) (int, erro
 	key := "recipes_number"
 
 	if value, err := service.cacheRepo.Get(ctx, key); err == nil {
+		service.logger.Error().Err(err).Send()
 		return strconv.Atoi(value)
 	}
 
 	number, err := service.recipeRepo.GetNumberOfRecipes(ctx)
 	if err != nil {
+		service.logger.Error().Err(err).Send()
 		return 0, err
 	}
 
@@ -80,6 +90,7 @@ func (service *RecipeService) GetRecipes(ctx context.Context, limit, page int) (
 
 	recipes, err := service.recipeRepo.GetRecipes(ctx, limit, offset)
 	if err != nil {
+		service.logger.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -91,6 +102,7 @@ func (service *RecipeService) GetRecipesByName(ctx context.Context, substring st
 
 	recipes, err := service.recipeRepo.GetRecipesByName(ctx, substring, position, limit, offset)
 	if err != nil {
+		service.logger.Error().Err(err).Send()
 		return nil, err
 	}
 
