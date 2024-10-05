@@ -12,6 +12,7 @@ services:
       - "5433:5432"
     networks:
       - postgres
+      - grafana
   pgadmin:
     image: dpage/pgadmin4
     restart: unless-stopped
@@ -38,6 +39,7 @@ services:
       - "6380:6379"
     networks:
       - redis
+      - grafana
   minio:
     image: minio/minio
     restart: unless-stopped
@@ -52,6 +54,45 @@ services:
     command: server --console-address ":9001" /data/minio
     networks:
       - minio
+      - grafana
+  grafana:
+    image: grafana/grafana
+    restart: unless-stopped
+    container_name: grafana
+    env_file:
+      - ../config/.env
+    volumes:
+      - grafana:/data/grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - grafana
+      - loki
+  loki:
+    image: grafana/loki
+    restart: unless-stopped
+    container_name: loki
+    volumes:
+      - ../config/loki-config.yaml:/etc/loki/loki-config.yaml
+    command: -config.file=/etc/loki/loki-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - grafana
+      - loki
+      - promtail
+  promtail:
+    image: grafana/promtail:latest
+    restart: unless-stopped
+    container_name: promtail
+    volumes:
+      - ../logs:/home/recipes/logs
+      - ../config/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    networks:
+      - grafana
+      - loki
+      - promtail
 networks:
   postgres:
     driver: bridge
@@ -59,8 +100,16 @@ networks:
     driver: bridge
   minio:
     driver: bridge
+  grafana:
+    driver: bridge
+  loki:
+    driver: bridge
+  promtail:
+    driver: bridge
 volumes:
   postgres:
   pgadmin:
   redis:
   minio:
+  grafana:
+  prometheus:

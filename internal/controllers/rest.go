@@ -4,6 +4,7 @@ import (
 	fastrouter "github.com/fasthttp/router"
 	"github.com/orewaee/recipes-api/internal/app/apis"
 	"github.com/orewaee/recipes-api/internal/middlewares"
+	"github.com/orewaee/recipes-api/internal/utils"
 	"github.com/rs/zerolog"
 	"github.com/valyala/fasthttp"
 	"log"
@@ -24,6 +25,10 @@ func NewRestController(addr string, recipeApi apis.RecipeApi, guideApi apis.Guid
 func (controller *RestController) Run() {
 	router := fastrouter.New()
 
+	router.GET("/ping", func(ctx *fasthttp.RequestCtx) {
+		utils.MustWriteString(ctx, "pong", fasthttp.StatusOK)
+	})
+
 	router.GET("/recipe/{id}", middlewares.LogMiddleware(controller.getRecipeById, controller.logger))
 	router.GET("/recipe/random", middlewares.LogMiddleware(controller.getRandomRecipe, controller.logger))
 	router.POST("/recipe", middlewares.LogMiddleware(controller.postRecipe, controller.logger))
@@ -37,6 +42,8 @@ func (controller *RestController) Run() {
 
 	router.GET("/preview/{id}", middlewares.LogMiddleware(controller.getPreviewById, controller.logger))
 	router.POST("/preview/{id}", middlewares.LogMiddleware(controller.postPreview, controller.logger))
+
+	controller.logger.Info().Msgf("running on addr %s", controller.addr)
 
 	if err := fasthttp.ListenAndServe(controller.addr, router.Handler); err != nil {
 		log.Fatalln(err)

@@ -10,3 +10,6 @@ Their list will probably change, but I will try to stick to the originally plann
 - [PostgreSQL](https://www.postgresql.org/)
 - [MinIO](https://min.io/)
 - [Swagger](https://swagger.io/)
+- [Grafana](https://github.com/grafana/grafana)
+- [Loki](https://github.com/grafana/loki)
+- [Promtail](https://grafana.com/docs/loki/latest/send-data/promtail/)
