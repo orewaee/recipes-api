@@ -9,3 +9,5 @@
 /tmp
 /api
 .air.toml
+
+.DS_Store
