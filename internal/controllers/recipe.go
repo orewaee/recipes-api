@@ -41,7 +41,6 @@ func (controller *RestController) postRecipe(ctx *fasthttp.RequestCtx) {
 
 func (controller *RestController) getRecipeById(ctx *fasthttp.RequestCtx) {
 	id := ctx.UserValue("id").(string)
-
 	if id == "" {
 		utils.MustWriteString(ctx, "missing id", fasthttp.StatusOK)
 		return
@@ -118,7 +117,6 @@ func (controller *RestController) getRecipes(ctx *fasthttp.RequestCtx) {
 		}
 
 		if err == nil {
-			ctx.Response.Header.Set("Cache-Control", "max-age=600")
 			utils.MustWriteJson(ctx, recipes, fasthttp.StatusOK)
 			return
 		}
@@ -144,7 +142,6 @@ func (controller *RestController) getRecipes(ctx *fasthttp.RequestCtx) {
 			}
 		}
 
-		ctx.Response.Header.Set("Cache-Control", "max-age=600")
 		utils.MustWriteJson(ctx, dtoRecipes, fasthttp.StatusOK)
 		return
 	}
@@ -191,7 +188,6 @@ func (controller *RestController) getNameSuggestions(ctx *fasthttp.RequestCtx) {
 			}
 		}
 
-		ctx.Response.Header.Set("Cache-Control", "max-age=600")
 		utils.MustWriteJson(ctx, response, fasthttp.StatusOK)
 		return
 	}
@@ -216,6 +212,32 @@ func (controller *RestController) getNameSuggestions(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	ctx.Response.Header.Set("Cache-Control", "max-age=600")
 	utils.MustWriteJson(ctx, response, fasthttp.StatusOK)
+}
+
+func (controller *RestController) updateRecipe(ctx *fasthttp.RequestCtx) {
+	id := ctx.UserValue("id").(string)
+	if id == "" {
+		utils.MustWriteString(ctx, "missing id", fasthttp.StatusOK)
+		return
+	}
+
+	data := utils.MustReadJson[dtos.UpdateRecipe](ctx)
+	var name, description *string
+
+	if data.Name != "" {
+		name = &data.Name
+	}
+
+	if data.Description != "" {
+		description = &data.Description
+	}
+
+	err := controller.recipeApi.UpdateRecipe(ctx, id, name, description)
+	if err != nil {
+		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
+		return
+	}
+
+	utils.MustWriteString(ctx, id, fasthttp.StatusOK)
 }

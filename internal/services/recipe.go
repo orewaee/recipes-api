@@ -2,14 +2,11 @@ package services
 
 import (
 	"context"
-	"strconv"
-	"time"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/orewaee/recipes-api/internal/app/apis"
 	"github.com/orewaee/recipes-api/internal/app/domain"
 	"github.com/orewaee/recipes-api/internal/app/repos"
-	"github.com/orewaee/recipes-api/internal/utils"
 	"github.com/rs/zerolog"
 )
 
@@ -46,19 +43,10 @@ func (service *RecipeService) AddRecipe(ctx context.Context, name, description s
 }
 
 func (service *RecipeService) GetRecipeById(ctx context.Context, id string) (*domain.Recipe, error) {
-	key := "recipe_" + id
-
-	if cache, err := service.cacheRepo.Get(ctx, key); err == nil {
-		return utils.MustUnmarshalRecipe(cache), nil
-	}
-
 	recipe, err := service.recipeRepo.GetRecipeById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-
-	data := utils.MustMarshalRecipe(recipe)
-	service.cacheRepo.Put(ctx, key, data, time.Minute*5)
 
 	return recipe, nil
 }
@@ -68,22 +56,13 @@ func (service *RecipeService) GetRandomRecipe(ctx context.Context) (*domain.Reci
 }
 
 func (service *RecipeService) GetNumberOfRecipes(ctx context.Context) (int, error) {
-	key := "recipes_number"
-
-	if value, err := service.cacheRepo.Get(ctx, key); err == nil {
-		service.logger.Error().Err(err).Send()
-		return strconv.Atoi(value)
-	}
-
 	number, err := service.recipeRepo.GetNumberOfRecipes(ctx)
 	if err != nil {
 		service.logger.Error().Err(err).Send()
 		return 0, err
 	}
 
-	service.cacheRepo.Put(ctx, key, strconv.Itoa(number), time.Minute*5)
-
-	return service.recipeRepo.GetNumberOfRecipes(ctx)
+	return number, nil
 }
 
 func (service *RecipeService) GetRecipes(ctx context.Context, limit, page int) ([]*domain.Recipe, error) {
@@ -112,4 +91,20 @@ func (service *RecipeService) GetRecipesByName(ctx context.Context, substring st
 
 func (service *RecipeService) GetNameSuggestions(ctx context.Context, substring string, position domain.Position, limit int) ([]domain.Suggestion, error) {
 	return service.recipeRepo.GetNameSuggestions(ctx, substring, position, limit)
+}
+
+func (service *RecipeService) UpdateRecipe(ctx context.Context, id string, name, description *string) error {
+	if name != nil {
+		if err := service.recipeRepo.SetRecipeName(ctx, id, *name); err != nil {
+			return err
+		}
+	}
+
+	if description != nil {
+		if err := service.recipeRepo.SetRecipeDescription(ctx, id, *description); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -14,4 +14,5 @@ type RecipeApi interface {
 	GetRecipes(ctx context.Context, limit, page int) ([]*domain.Recipe, error)
 	GetRecipesByName(ctx context.Context, substring string, position domain.Position, limit, page int) ([]*domain.Recipe, error)
 	GetNameSuggestions(ctx context.Context, substring string, position domain.Position, limit int) ([]domain.Suggestion, error)
+	UpdateRecipe(ctx context.Context, id string, name, description *string) error
 }

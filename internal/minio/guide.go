@@ -2,11 +2,12 @@ package minio
 
 import (
 	"context"
+	"io"
+	"strings"
+
 	"github.com/minio/minio-go/v7"
 	"github.com/orewaee/recipes-api/internal/app/domain"
 	"github.com/orewaee/recipes-api/internal/app/repos"
-	"io"
-	"strings"
 )
 
 type GuideRepo struct {
@@ -30,7 +31,7 @@ func NewGuideRepo(ctx context.Context, client *minio.Client, bucket string) (rep
 	return &GuideRepo{bucket, client}, nil
 }
 
-func (repo *GuideRepo) AddGuide(ctx context.Context, id, markdown string) error {
+func (repo *GuideRepo) SetGuide(ctx context.Context, id, markdown string) error {
 	reader := strings.NewReader(markdown)
 	_, err := repo.client.PutObject(ctx, repo.bucket, id+".md", reader, reader.Size(), minio.PutObjectOptions{
 		ContentType: "text/markdown; charset=UTF-8",

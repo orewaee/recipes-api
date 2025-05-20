@@ -14,4 +14,6 @@ type RecipeRepo interface {
 	GetRecipes(ctx context.Context, limit, offset int) ([]*domain.Recipe, error)
 	GetRecipesByName(ctx context.Context, substring string, position domain.Position, limit, offset int) ([]*domain.Recipe, error)
 	GetNameSuggestions(ctx context.Context, substring string, position domain.Position, limit int) ([]domain.Suggestion, error)
+	SetRecipeName(ctx context.Context, id, name string) error
+	SetRecipeDescription(ctx context.Context, id, description string) error
 }

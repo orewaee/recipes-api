@@ -99,7 +99,7 @@ func (repo *RecipeRepo) GetRecipes(ctx context.Context, limit, offset int) ([]*d
 		return nil, err
 	}
 
-	recipes, err := pgx.CollectRows[*domain.Recipe](rows, func(row pgx.CollectableRow) (*domain.Recipe, error) {
+	recipes, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (*domain.Recipe, error) {
 		recipe := new(domain.Recipe)
 		if err := row.Scan(&recipe.Id, &recipe.Name, &recipe.Description); err != nil {
 			return nil, err
@@ -139,7 +139,7 @@ func (repo *RecipeRepo) GetRecipesByName(ctx context.Context, substring string, 
 		return nil, err
 	}
 
-	recipes, err := pgx.CollectRows[*domain.Recipe](rows, func(row pgx.CollectableRow) (*domain.Recipe, error) {
+	recipes, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (*domain.Recipe, error) {
 		recipe := new(domain.Recipe)
 		if err := row.Scan(&recipe.Id, &recipe.Name, &recipe.Description); err != nil {
 			return nil, err
@@ -196,4 +196,14 @@ func (repo *RecipeRepo) GetNameSuggestions(ctx context.Context, substring string
 	}
 
 	return suggestions, nil
+}
+
+func (repo *RecipeRepo) SetRecipeName(ctx context.Context, id, name string) error {
+	_, err := repo.pool.Exec(ctx, "update recipes set name = $1 where id = $2", name, id)
+	return err
+}
+
+func (repo *RecipeRepo) SetRecipeDescription(ctx context.Context, id, description string) error {
+	_, err := repo.pool.Exec(ctx, "update recipes set description = $1 where id = $2", description, id)
+	return err
 }
