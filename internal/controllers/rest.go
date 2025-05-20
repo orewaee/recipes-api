@@ -1,13 +1,14 @@
 package controllers
 
 import (
+	"log"
+
 	fastrouter "github.com/fasthttp/router"
 	"github.com/orewaee/recipes-api/internal/app/apis"
 	"github.com/orewaee/recipes-api/internal/middlewares"
 	"github.com/orewaee/recipes-api/internal/utils"
 	"github.com/rs/zerolog"
 	"github.com/valyala/fasthttp"
-	"log"
 )
 
 type RestController struct {
@@ -29,23 +30,23 @@ func (controller *RestController) Run() {
 		utils.MustWriteString(ctx, "pong", fasthttp.StatusOK)
 	})
 
-	router.GET("/recipe/{id}", middlewares.LogMiddleware(controller.getRecipeById, controller.logger))
-	router.GET("/recipe/random", middlewares.LogMiddleware(controller.getRandomRecipe, controller.logger))
-	router.POST("/recipe", middlewares.LogMiddleware(controller.postRecipe, controller.logger))
+	router.GET("/recipe/{id}", controller.getRecipeById)
+	router.GET("/recipe/random", controller.getRandomRecipe)
+	router.POST("/recipe", controller.postRecipe)
 
-	router.GET("/recipes/number", middlewares.LogMiddleware(controller.getNumberOfRecipes, controller.logger))
-	router.GET("/recipes", middlewares.LogMiddleware(controller.getRecipes, controller.logger))
-	router.GET("/recipes/suggestions", middlewares.LogMiddleware(controller.getNameSuggestions, controller.logger))
+	router.GET("/recipes/number", controller.getNumberOfRecipes)
+	router.GET("/recipes", controller.getRecipes)
+	router.GET("/recipes/suggestions", controller.getNameSuggestions)
 
-	router.GET("/guide/{id}", middlewares.LogMiddleware(controller.getGuideById, controller.logger))
-	router.POST("/guide/{id}", middlewares.LogMiddleware(controller.postGuide, controller.logger))
+	router.GET("/guide/{id}", controller.getGuideById)
+	router.POST("/guide/{id}", controller.postGuide)
 
-	router.GET("/preview/{id}", middlewares.LogMiddleware(controller.getPreviewById, controller.logger))
-	router.POST("/preview/{id}", middlewares.LogMiddleware(controller.postPreview, controller.logger))
+	router.GET("/preview/{id}", controller.getPreviewById)
+	router.POST("/preview/{id}", controller.postPreview)
 
 	controller.logger.Info().Msgf("running on addr %s", controller.addr)
 
-	if err := fasthttp.ListenAndServe(controller.addr, router.Handler); err != nil {
+	if err := fasthttp.ListenAndServe(controller.addr, middlewares.LogMiddleware(middlewares.CorsMiddleware(router.Handler), controller.logger)); err != nil {
 		log.Fatalln(err)
 	}
 }

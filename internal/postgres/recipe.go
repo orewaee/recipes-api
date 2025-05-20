@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/orewaee/recipes-api/internal/app/domain"
@@ -158,18 +159,17 @@ func (repo *RecipeRepo) GetRecipesByName(ctx context.Context, substring string, 
 	return recipes, nil
 }
 
-func (repo *RecipeRepo) GetNameSuggestions(ctx context.Context, substring string, position domain.Position, limit int) ([]string, error) {
+func (repo *RecipeRepo) GetNameSuggestions(ctx context.Context, substring string, position domain.Position, limit int) ([]domain.Suggestion, error) {
 	sql := ""
 
 	switch position {
 	case domain.PositionStart:
-		sql = fmt.Sprintf("select name from recipes where name ilike '%s%%' limit $1", substring)
+		sql = fmt.Sprintf("select id, name from recipes where name ilike '%s%%' limit $1", substring)
 	case domain.PositionMiddle:
-		sql = fmt.Sprintf("select name from recipes where name ilike '%%%s%%' limit $1", substring)
+		sql = fmt.Sprintf("select id, name from recipes where name ilike '%%%s%%' limit $1", substring)
 	}
 
 	rows, err := repo.pool.Query(ctx, sql, limit)
-
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
 		return nil, domain.ErrNoSuggestions
 	}
@@ -178,10 +178,10 @@ func (repo *RecipeRepo) GetNameSuggestions(ctx context.Context, substring string
 		return nil, err
 	}
 
-	suggestions, err := pgx.CollectRows[string](rows, func(row pgx.CollectableRow) (string, error) {
-		suggestion := ""
-		if err := row.Scan(&suggestion); err != nil {
-			return "", err
+	suggestions, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (domain.Suggestion, error) {
+		suggestion := domain.Suggestion{}
+		if err := row.Scan(&suggestion.Id, &suggestion.Name); err != nil {
+			return suggestion, err
 		}
 
 		return suggestion, nil

@@ -3,11 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strconv"
+
 	"github.com/orewaee/recipes-api/internal/app/domain"
 	"github.com/orewaee/recipes-api/internal/dtos"
 	"github.com/orewaee/recipes-api/internal/utils"
 	"github.com/valyala/fasthttp"
-	"strconv"
 )
 
 func (controller *RestController) postRecipe(ctx *fasthttp.RequestCtx) {
@@ -84,6 +86,7 @@ func (controller *RestController) getRandomRecipe(ctx *fasthttp.RequestCtx) {
 
 func (controller *RestController) getNumberOfRecipes(ctx *fasthttp.RequestCtx) {
 	number, err := controller.recipeApi.GetNumberOfRecipes(ctx)
+	fmt.Println(number)
 
 	if err != nil {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
@@ -100,15 +103,15 @@ func (controller *RestController) getRecipes(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	limit, err := strconv.Atoi(string(ctx.QueryArgs().Peek("limit")))
+	perPage, err := strconv.Atoi(string(ctx.QueryArgs().Peek("per_page")))
 	if err != nil {
-		utils.MustWriteString(ctx, "invalid limit", fasthttp.StatusBadRequest)
+		utils.MustWriteString(ctx, "invalid per_page", fasthttp.StatusBadRequest)
 		return
 	}
 
 	name := string(ctx.QueryArgs().Peek("name"))
 	if name != "" {
-		recipes, err := controller.recipeApi.GetRecipesByName(ctx, name, domain.PositionStart, limit, page)
+		recipes, err := controller.recipeApi.GetRecipesByName(ctx, name, domain.PositionStart, perPage, page)
 		if err != nil && !errors.Is(err, domain.ErrNoSuggestions) {
 			utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
 			return
@@ -120,7 +123,7 @@ func (controller *RestController) getRecipes(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		recipes, err = controller.recipeApi.GetRecipesByName(ctx, name, domain.PositionMiddle, limit, page)
+		recipes, err = controller.recipeApi.GetRecipesByName(ctx, name, domain.PositionMiddle, perPage, page)
 
 		if err != nil && errors.Is(err, domain.ErrNoSuggestions) {
 			utils.MustWriteString(ctx, err.Error(), fasthttp.StatusNotFound)
@@ -146,7 +149,7 @@ func (controller *RestController) getRecipes(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	recipes, err := controller.recipeApi.GetRecipes(ctx, limit, page)
+	recipes, err := controller.recipeApi.GetRecipes(ctx, perPage, page)
 	if err != nil {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
 		return
@@ -174,15 +177,22 @@ func (controller *RestController) getNameSuggestions(ctx *fasthttp.RequestCtx) {
 	}
 
 	suggestions, err := controller.recipeApi.GetNameSuggestions(ctx, query, domain.PositionStart, limit)
-
 	if err != nil && !errors.Is(err, domain.ErrNoSuggestions) {
 		utils.MustWriteString(ctx, err.Error(), fasthttp.StatusInternalServerError)
 		return
 	}
 
 	if err == nil {
+		response := make([]dtos.Suggestion, len(suggestions))
+		for i := range suggestions {
+			response[i] = dtos.Suggestion{
+				Id:   suggestions[i].Id,
+				Name: suggestions[i].Name,
+			}
+		}
+
 		ctx.Response.Header.Set("Cache-Control", "max-age=600")
-		utils.MustWriteJson(ctx, suggestions, fasthttp.StatusOK)
+		utils.MustWriteJson(ctx, response, fasthttp.StatusOK)
 		return
 	}
 
@@ -198,6 +208,14 @@ func (controller *RestController) getNameSuggestions(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	response := make([]dtos.Suggestion, len(suggestions))
+	for i := range suggestions {
+		response[i] = dtos.Suggestion{
+			Id:   suggestions[i].Id,
+			Name: suggestions[i].Name,
+		}
+	}
+
 	ctx.Response.Header.Set("Cache-Control", "max-age=600")
-	utils.MustWriteJson(ctx, suggestions, fasthttp.StatusOK)
+	utils.MustWriteJson(ctx, response, fasthttp.StatusOK)
 }

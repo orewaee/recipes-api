@@ -2,14 +2,15 @@ package services
 
 import (
 	"context"
+	"strconv"
+	"time"
+
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/orewaee/recipes-api/internal/app/apis"
 	"github.com/orewaee/recipes-api/internal/app/domain"
 	"github.com/orewaee/recipes-api/internal/app/repos"
 	"github.com/orewaee/recipes-api/internal/utils"
 	"github.com/rs/zerolog"
-	"strconv"
-	"time"
 )
 
 type RecipeService struct {
@@ -109,6 +110,6 @@ func (service *RecipeService) GetRecipesByName(ctx context.Context, substring st
 	return recipes, nil
 }
 
-func (service *RecipeService) GetNameSuggestions(ctx context.Context, substring string, position domain.Position, limit int) ([]string, error) {
+func (service *RecipeService) GetNameSuggestions(ctx context.Context, substring string, position domain.Position, limit int) ([]domain.Suggestion, error) {
 	return service.recipeRepo.GetNameSuggestions(ctx, substring, position, limit)
 }
